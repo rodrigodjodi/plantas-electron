@@ -18,17 +18,18 @@
       <v-container fluid>
         <v-layout justify-center >
           <v-flex xs12 class="text-xs-center">
-            <v-btn-toggle v-model="imageFile" mandatory>
-              <v-btn flat value="subsolo1.jpg">
+            <v-btn-toggle v-model="nivel" mandatory>
+              <v-btn flat value="subsolo1">
                 Subsolo 1
               </v-btn>
-              <v-btn flat value="subsolo2.jpg">
+              <v-btn flat value="subsolo2">
                 Subsolo 2
               </v-btn>
             </v-btn-toggle>
           </v-flex>
         </v-layout>
-        <Planta :imageFile="imageFile"/>
+        <Planta :nivel="nivel"/>
+       <!--  <v-btn @click="uploadVagas">upload vagas</v-btn> -->
       </v-container>
     </v-content>
   </v-app>
@@ -36,7 +37,7 @@
 
 <script>
 import Planta from "./components/Planta";
-
+import { db } from "./main";
 export default {
   name: "App",
   components: {
@@ -44,40 +45,25 @@ export default {
   },
   data() {
     return {
-      imageFile: "subsolo1.jpg",
-      unidades: [
-        "101",
-        "201",
-        "202",
-        "203",
-        "204",
-        "301",
-        "302",
-        "303",
-        "304",
-        "401",
-        "402",
-        "403",
-        "404",
-        "501",
-        "502",
-        "503",
-        "504",
-        "601",
-        "602",
-        "603",
-        "604",
-        "701",
-        "702",
-        "703",
-        "704"
-      ]
+      nivel: "subsolo1"
     };
   },
   methods: {
     makePDF() {
       alert("Não implementado!");
+    },
+    uploadVagas() {
+      var batch = db.batch();
+      vagas.forEach(vaga => {
+        let ref = db.doc(`projetos/prudente/vagas/${vaga.numero}`);
+        delete vaga.numero;
+        batch.set(ref, vaga);
+      });
+      batch.commit().catch(err => {
+        console.error(err);
+      });
     }
-  }
+  },
+  created() {}
 };
 </script>

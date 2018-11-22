@@ -37,7 +37,7 @@
 
 <script>
 import Planta from "./components/Planta";
-import { db } from "./main";
+//import { db } from "./main";
 export default {
   name: "App",
   components: {

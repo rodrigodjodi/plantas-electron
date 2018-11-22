@@ -6,19 +6,28 @@
         contain
         max-height="800"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-        preserveAspectRatio="xMidYMid" width="100%"
-        viewBox="0 0 1600 938">
+        <svg xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          preserveAspectRatio="xMidYMid" width="100%"
+          viewBox="0 0 1600 938"
+        >
           <defs>
-            <pattern id="hachura" width="5" height="5" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-              <line x1="0" y1="0" x2="0" y2="10" style="stroke:orange; stroke-width:3" />
+            <pattern id="hachura" width="5" height="5"
+              patternTransform="rotate(45 0 0)"
+              patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="10" 
+                style="stroke:orange; stroke-width:3"
+              />
             </pattern>
-          </defs>
+           </defs>
           <rect v-for="vaga in vagas" :key="vaga.numero"
-            :x="vaga.x" :y="vaga.y" :width="vaga.width" :height="vaga.height"
-            class="vaga" :class="{'vaga-hl': highLighted==vaga.numero, 'vaga-ocupada': vaga.ap }"
+            :x="vaga.x" :y="vaga.y"
+            :width="vaga.width" :height="vaga.height"
+            :class="{'vaga-hl': highLighted==vaga.numero, 'vaga-ocupada': vaga.ap }"
             opacity="0" fill="url(#hachura)"
-            @mouseover="onMouseover(vaga.numero)" @mouseleave="onMouseover(0)"
+            @mouseover="onMouseover(vaga.numero)"
+            @mouseleave="onMouseover(0)"
+            @click="showDialog(vaga)"
           />
           <text v-for="vaga  in vagas" :key="'v'+vaga.numero"
             :x="vaga.x + (vaga.width/2)" :y="vaga.y + (vaga.height/2)"
@@ -30,23 +39,58 @@
       </v-img>
     </v-flex>
     <v-flex xs12 lg2>
-      <v-data-table hide-actions hide-headers
-          :items="vagas"
+      <v-data-table hide-actions 
+          :items="vagas" :headers="headers"
           class="elevation-1"
         >
           <template slot="items" slot-scope="props">
-            <td>{{ props.item.numero }}</td>
+            <td 
+              :class="{'hl': highLighted==props.item.numero}"
+              @mouseover="onMouseover(props.item.numero)"
+              @mouseleave="onMouseover(0)"
+              @click="showDialog(props.item)"
+            >{{ props.item.numero }}</td>
             <td class="text-xs-right">
               {{props.item.ap}}
             </td>
           </template>
         </v-data-table>
     </v-flex>
+    <v-dialog v-model="dialog" max-width="320px">
+      <v-card>
+        <v-card-title>
+          <span class="headline">{{dialogHeadline}}</span>
+        </v-card-title>
+
+        <v-card-text>
+          <v-container>
+            <v-layout>
+              <v-flex xs12>
+                <v-select v-model="dialogAp"
+                  :items="unidades"
+                  label="Escolha um apartamento da lista..."
+                  solo
+                  clearable
+                ></v-select>
+              </v-flex>
+              
+            </v-layout>
+          </v-container>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" flat @click="closeDialog">Cancelar</v-btn>
+          <v-btn color="blue darken-1" flat @click="save">{{dialogConfirmText}}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-layout>
+  
 </template>
 
 <script>
-import { db } from "../main";
+import db from "../main";
 export default {
   props: {
     nivel: {
@@ -58,7 +102,21 @@ export default {
     return {
       highLighted: "",
       todasAsVagas: [],
-      unidades: []
+      unidades: [],
+      dialog:false,
+      headers: [
+        {
+          text: 'Vaga',
+          align: 'left',
+          sortable: false,
+          value: 'vaga'
+        },
+        { text: 'Apartamento', value: 'ap', sortable: false },
+      ],
+      editandoVaga: 0,
+      dialogHeadline: "",
+      dialogConfirmText: "",
+      dialogAp: ""
     };
   },
   computed: {
@@ -67,11 +125,47 @@ export default {
     }
   },
   methods: {
+    liberaVaga() {
+      this.dialogAp = null;
+    },
     onMouseover(ev) {
       this.highLighted = ev;
+    },
+    showDialog(ev) {
+      this.editandoVaga = ev.numero;
+      if (ev.ap === null) {
+        this.dialogConfirmText = "Reservar"
+        this.dialogHeadline = `Reservar vaga ${ev.numero}?`
+      } else {
+        this.dialogConfirmText = "Alterar"
+        this.dialogHeadline = `Alterar vaga ${ev.numero}?`;
+        this.dialogAp = ev.ap;
+      }
+      this.dialog = true;
+    },
+    closeDialog() {
+      this.dialogConfirmText = "";
+      this.dialogHeadline = "";
+      this.editandoVaga = 0;
+      this.dialogAp = "";
+      this.dialog = false;
+    },
+    save() {
+      if (typeof this.dialogAp === 'undefined') {
+        this.dialogAp = null;
+      };
+      db.doc(`projetos/prudente/vagas/${this.editandoVaga}`)
+      .update({ap: this.dialogAp}).then(()=> {
+        console.log("Document successfully updated!");
+        this.closeDialog();
+      })
+      .catch(function(error) {
+          // The document probably doesn't exist.
+        console.error("Error updating document: ", error);
+      });
     }
   },
-  mounted() {
+  created() {
     db.doc("projetos/prudente")
       .get()
       .then(doc => {
@@ -96,6 +190,14 @@ svg {
   max-height: 800px;
 }
 td {
+  transition: background 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+  will-change: background;
+}
+td.hl {
+  background: rgba(0, 128, 0, 0.4);
+  cursor: pointer;
+}
+td {
   height: 18px !important;
 }
 .select-ap {
@@ -112,6 +214,7 @@ td {
   font-weight: bold;
   background: #bebebe;
   opacity: 0.4;
+  cursor: pointer;
 }
 .vaga-ocupada {
   opacity: 0.8;

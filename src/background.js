@@ -79,7 +79,7 @@ if (isDevelopment) {
   }
 }
 
-/* ipcMain.on("print-to-pdf", function(event) {
+ipcMain.on("print-to-pdf", function(event) {
   const pdfPath = path.join(os.tmpdir(), "prudente.pdf");
   const win = BrowserWindow.fromWebContents(event.sender);
   win.webContents.printToPDF(
@@ -93,4 +93,4 @@ if (isDevelopment) {
       });
     }
   );
-}); */
+});

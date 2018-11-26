@@ -6,7 +6,7 @@
         <span class="font-weight-light">Prudente de Moraes</span>
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn id="makepdf" flat @click="makePDF">
+      <v-btn v-if="electron" flat @click="makePDF">
         <span class="mr-2">salvar pdf</span>
       </v-btn>
     </v-toolbar>
@@ -30,8 +30,9 @@
 
 <script>
 import Planta from "./components/Planta";
-/* import { ipcRenderer } from "electron"; */
-//import { db } from "./main";
+if(process.versions) {
+  var ipcRenderer = require("electron").ipcRenderer;
+}
 export default {
   name: "App",
   components: {
@@ -39,7 +40,8 @@ export default {
   },
   data() {
     return {
-      nivel: "subsolo1"
+      nivel: "subsolo1",
+      electron: false
     };
   },
   methods: {
@@ -59,9 +61,12 @@ export default {
     }
   },
   created() {
-    /* ipcRenderer.on("wrote-pdf", (event, path) => {
-      alert(`Arquivo salvo em ${path}.`)
-    }) */
+    if(ipcRenderer) {
+      this.electron = true
+      ipcRenderer.on("wrote-pdf", (event, path) => {
+        alert(`Arquivo salvo em ${path}.`)
+      })
+    }
   }
 };
 </script>

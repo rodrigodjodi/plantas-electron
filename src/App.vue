@@ -6,30 +6,23 @@
         <span class="font-weight-light">Prudente de Moraes</span>
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn
-        flat
-        @click="makePDF"
-      >
+      <v-btn id="makepdf" flat @click="makePDF">
         <span class="mr-2">salvar pdf</span>
       </v-btn>
     </v-toolbar>
 
     <v-content>
       <v-container fluid>
-        <v-layout justify-center >
+        <v-layout justify-center>
           <v-flex xs12 class="text-xs-center">
             <v-btn-toggle v-model="nivel" mandatory>
-              <v-btn flat value="subsolo1">
-                Subsolo 1
-              </v-btn>
-              <v-btn flat value="subsolo2">
-                Subsolo 2
-              </v-btn>
+              <v-btn flat value="subsolo1">Subsolo 1</v-btn>
+              <v-btn flat value="subsolo2">Subsolo 2</v-btn>
             </v-btn-toggle>
           </v-flex>
         </v-layout>
         <Planta :nivel="nivel"/>
-       <!--  <v-btn @click="uploadVagas">upload vagas</v-btn> -->
+        <!--  <v-btn @click="uploadVagas">upload vagas</v-btn> -->
       </v-container>
     </v-content>
   </v-app>
@@ -37,6 +30,7 @@
 
 <script>
 import Planta from "./components/Planta";
+/* import { ipcRenderer } from "electron"; */
 //import { db } from "./main";
 export default {
   name: "App",
@@ -50,7 +44,7 @@ export default {
   },
   methods: {
     makePDF() {
-      alert("Não implementado!");
+      ipcRenderer.send("print-to-pdf")
     },
     uploadVagas() {
       var batch = db.batch();
@@ -64,6 +58,17 @@ export default {
       });
     }
   },
-  created() {}
+  created() {
+    /* ipcRenderer.on("wrote-pdf", (event, path) => {
+      alert(`Arquivo salvo em ${path}.`)
+    }) */
+  }
 };
 </script>
+<style>
+@media print { 
+  button {
+    display: none !important;
+  }
+}
+</style>

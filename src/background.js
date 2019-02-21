@@ -79,18 +79,20 @@ if (isDevelopment) {
   }
 }
 
-ipcMain.on("print-to-pdf", function(event) {
-  const pdfPath = path.join(os.tmpdir(), "prudente.pdf");
+ipcMain.on("print-to-pdf", function(event, nivel) {
+  const pdfPath = path.join(os.tmpdir(), `prudente-${nivel}.pdf`);
   const win = BrowserWindow.fromWebContents(event.sender);
   win.webContents.printToPDF(
-    { landscape: true, printBackground: true },
+    { landscape: true, printBackground: true, marginsType: 2, pageSize: "A4" },
     function(err, data) {
       if (err) return console.log(err.message);
-      fs.writeFile(pdfPath, data, function(err) {
-        if (err) return console.log(err.message);
+      try {
+        fs.writeFileSync(pdfPath, data);
         shell.openExternal("file://" + pdfPath);
         event.sender.send("wrote-pdf", pdfPath);
-      });
+      } catch (err) {
+        event.sender.send("not-wrote-pdf", err);
+      }
     }
   );
 });

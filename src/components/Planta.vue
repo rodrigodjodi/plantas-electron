@@ -49,12 +49,13 @@
       <v-data-table hide-actions :items="vagas" :headers="headers" class="elevation-1">
         <template slot="items" slot-scope="props">
           <td
+            class="text-xs-center"
             :class="{'hl': highLighted==props.item.numero}"
             @mouseover="onMouseover(props.item.numero)"
             @mouseleave="onMouseover(0)"
             @click="showDialog(props.item)"
           >{{ props.item.numero }}</td>
-          <td class="text-xs-right">{{props.item.ap}}</td>
+          <td class="text-xs-center">{{props.item.ap}}</td>
         </template>
       </v-data-table>
     </v-flex>
@@ -115,11 +116,11 @@ export default {
       headers: [
         {
           text: "Vaga",
-          align: "left",
+          align: "center",
           sortable: false,
           value: "vaga"
         },
-        { text: "Apartamento", value: "ap", sortable: false }
+        { text: "Apto", value: "ap", align: "center", sortable: false }
       ],
       editandoVaga: 0,
       dialogHeadline: "",
@@ -210,7 +211,7 @@ td {
   height: 18px !important;
 }
 .printBG {
-  -webkit-print-color-adjust: exact !important;   /* Chrome, Safari */
+  -webkit-print-color-adjust: exact !important; /* Chrome, Safari */
   color-adjust: exact !important;
 }
 .select-ap {
@@ -231,5 +232,39 @@ td {
 }
 .vaga-ocupada {
   opacity: 0.8;
+}
+@media print {
+  .flex.xs12.lg10 {
+    flex-basis: 84%;
+    max-width: 84%;
+    margin-left: 2em;
+  }
+  .flex.xs12.lg2 {
+    flex-basis: 10%;
+    max-width: 10%;
+  }
+  table.v-table tbody td {
+    font-size: 10px !important;
+    padding: 0 8px 0 !important;
+  }
+  td {
+    height: 10px !important;
+    overflow: hidden;
+  }
+  table.v-table thead th:first-child {
+    padding: 0 4px 0;
+  }
+  table.v-table thead tr {
+    height: 18px;
+  }
+  table.v-table tbody {
+    overflow: hidden;
+  }
+  tr {
+    overflow: hidden;
+  }
+  .v-table__overflow {
+    overflow-x: hidden !important;
+  }
 }
 </style>

@@ -6,9 +6,13 @@
         <span class="font-weight-light">Prudente de Moraes</span>
       </v-toolbar-title>
       <v-spacer></v-spacer>
+      <v-btn flat @click="print">
+        <span class="mr-2">imprimir</span>
+      </v-btn>
       <v-btn v-if="electron" flat @click="makePDF">
         <span class="mr-2">salvar pdf</span>
       </v-btn>
+      <v-toolbar-title class="font-weight-light headline text-uppercase showInPrint">{{nivel}}</v-toolbar-title>
     </v-toolbar>
 
     <v-content>
@@ -21,7 +25,7 @@
             </v-btn-toggle>
           </v-flex>
         </v-layout>
-        <Planta :nivel="nivel"/>
+        <Planta ref="planta" :nivel="nivel"/>
         <!--  <v-btn @click="uploadVagas">upload vagas</v-btn> -->
       </v-container>
     </v-content>
@@ -30,7 +34,7 @@
 
 <script>
 import Planta from "./components/Planta";
-if(process.versions) {
+if (process.versions) {
   var ipcRenderer = require("electron").ipcRenderer;
 }
 export default {
@@ -41,12 +45,17 @@ export default {
   data() {
     return {
       nivel: "subsolo1",
+      printing: false,
       electron: false
     };
   },
   methods: {
     makePDF() {
-      ipcRenderer.send("print-to-pdf")
+      ipcRenderer.send("print-to-pdf", this.nivel);
+    },
+    print() {
+      console.log(this.$refs.planta.$el);
+      window.print();
     },
     uploadVagas() {
       var batch = db.batch();
@@ -61,19 +70,34 @@ export default {
     }
   },
   created() {
-    if(ipcRenderer) {
-      this.electron = true
+    if (ipcRenderer) {
+      this.electron = true;
       ipcRenderer.on("wrote-pdf", (event, path) => {
-        alert(`Arquivo salvo em ${path}.`)
-      })
+        alert(`Arquivo salvo em ${path}. Abrirá automaticamente.`);
+      });
+      ipcRenderer.on("not-wrote-pdf", (event, err) => {
+        alert(`Erro ao salvar arquivo (possivelmente esteja aberto).`);
+      });
     }
   }
 };
 </script>
 <style>
-@media print { 
+.showInPrint {
+  display: none;
+}
+@media print {
   button {
     display: none !important;
+  }
+  main {
+    padding: 18px 0 !important;
+  }
+  .container {
+    padding: 24px 0;
+  }
+  .showInPrint {
+    display: block;
   }
 }
 </style>
